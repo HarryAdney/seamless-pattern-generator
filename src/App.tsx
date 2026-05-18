@@ -4,7 +4,7 @@ import { UploadZone } from './components/UploadZone';
 import { PatternPreview } from './components/PatternPreview';
 import { TiledPreview } from './components/TiledPreview';
 import { OffsetControls } from './components/OffsetControls';
-import { generateSeamlessPattern } from './lib/pattern-generator';
+import { generateSeamlessPattern, generateMetatile } from './lib/pattern-generator';
 import type { PatternState } from './types';
 
 function App() {
@@ -19,9 +19,11 @@ function App() {
   const [offsetY, setOffsetY] = useState(50);
   const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const seamlessCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const regeneratePattern = useCallback((img: HTMLImageElement, offX: number, offY: number) => {
     const seamlessCanvas = generateSeamlessPattern(img, offX, offY);
+    seamlessCanvasRef.current = seamlessCanvas;
     setPattern((prev) => ({
       ...prev,
       seamlessImage: seamlessCanvas.toDataURL('image/png'),
@@ -48,6 +50,7 @@ function App() {
       });
 
       const seamlessCanvas = generateSeamlessPattern(img, 50, 50);
+      seamlessCanvasRef.current = seamlessCanvas;
       const originalCanvas = document.createElement('canvas');
       originalCanvas.width = img.width;
       originalCanvas.height = img.height;
@@ -81,18 +84,20 @@ function App() {
   );
 
   const handleDownload = useCallback(() => {
-    if (!pattern.seamlessImage) return;
+    if (!seamlessCanvasRef.current) return;
+    const metatile = generateMetatile(seamlessCanvasRef.current, offsetX, offsetY);
     const a = document.createElement('a');
-    a.href = pattern.seamlessImage;
+    a.href = metatile.toDataURL('image/png');
     const baseName = pattern.fileName.replace(/\.[^.]+$/, '');
     a.download = `${baseName}-seamless.png`;
     a.click();
-  }, [pattern]);
+  }, [pattern.fileName, offsetX, offsetY]);
 
   const handleReset = useCallback(() => {
     setPattern({ originalImage: null, seamlessImage: null, fileName: '' });
     setShowTiled(false);
     setLoadedImage(null);
+    seamlessCanvasRef.current = null;
     setOffsetX(50);
     setOffsetY(50);
   }, []);
