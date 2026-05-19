@@ -99,8 +99,8 @@ export function generateMetatile(
   if (!hasX && !hasY) return seamlessTile;
 
   const canvas = document.createElement('canvas');
-  canvas.width  = hasX ? W * 2 : W;
-  canvas.height = hasY ? H * 2 : H;
+  canvas.width  = hasY ? W * 2 : W;
+  canvas.height = hasX ? H * 2 : H;
   const ctx = canvas.getContext('2d')!;
 
   // TL — no stagger
